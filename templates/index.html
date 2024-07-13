@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django Password Hash Generator</title>
+    <style>
+        body {
+            background-color: #1E1E1E;
+            color: #BFBFBF;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .container {
+            background-color: #2D2D2D;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            max-width: 100%;
+            width: 400px;
+            box-sizing: border-box;
+        }
+        .container label {
+            display: block;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        .container input, .container select, .container button {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .container button {
+            background-color: #8A2BE2;
+            color: #FFF;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .container button:hover {
+            background-color: #5D179E;
+        }
+        .result {
+            background-color: #2D2D2D;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            margin-top: 20px;
+            word-wrap: break-word;
+            font-size: 0.9em;
+        }
+        .references {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .references a {
+            color: #8A2BE2;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        a {
+            margin-right: 30px; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Django Password Hash Generator</h1>
+    <div class="container">
+        <form id="hashForm" onsubmit="handleSubmit(event)">
+            <label for="password">Password:</label>
+            <input type="text" id="password" required>
+
+            <label for="hashType">Hashing type:</label>
+            <select id="hashType" disabled>
+                <option value="pbkdf2_sha256" selected>pbkdf2_sha256</option>
+            </select>
+
+            <label for="iterations">Iterations:</label>
+            <input type="number" id="iterations" value="390000" required>
+
+            <label for="salt">Salt (leave empty to generate):</label>
+            <input type="text" id="salt">
+
+            <button type="submit">Generate</button>
+            <button type="button" onclick="copyToClipboard()">Copy</button>
+        </form>
+        <div class="result" id="result"></div>
+    </div>
+    <div class="references">
+        <p>Link</p>
+        <a href="https://docs.djangoproject.com/en/stable/topics/auth/passwords/">Reference</a>
+        <a href="https://github.com/hetsaraiya/Django-Password-Generator">Github</a>
+        <a href="https://hetsaraiya.com">Author</a>
+    </div>
+    <script>
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const password = document.getElementById('password').value;
+            const salt = document.getElementById('salt').value;
+            const iterations = parseInt(document.getElementById('iterations').value, 10);
+
+            const response = await fetch('/hash', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password, salt, iterations })
+            });
+
+            const data = await response.json();
+            document.getElementById('result').innerText = data.hashed_password;
+        }
+
+        function copyToClipboard() {
+            const result = document.getElementById('result').innerText;
+            navigator.clipboard.writeText(result).then(() => {
+                alert('Copied to clipboard!');
+            }, (err) => {
+                alert('Failed to copy: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
